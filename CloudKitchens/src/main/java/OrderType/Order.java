@@ -25,8 +25,6 @@ public class Order {
     public void setLifeValue(double lifeValue) { this.lifeValue = lifeValue; }
 
     public double getOrderAge() {
-        System.out.println("create time: " + getCreateTime());
-        System.out.println("current time: " + System.currentTimeMillis());
         return System.currentTimeMillis() - getCreateTime();
     }
 

@@ -1,11 +1,9 @@
 package Storage;
 
 import OrderType.Order;
-import Utils.OrderComparator;
+import OrderType.OrderComparator;
 
-import java.util.Iterator;
-import java.util.Map;
-import java.util.PriorityQueue;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class ShelfStorage implements IStorage {
@@ -33,12 +31,14 @@ public class ShelfStorage implements IStorage {
     }
 
     private Map<SHELF, PriorityQueue<Order>> shelfMap = new ConcurrentHashMap<>();
+    private Queue<Order> staleOrders = new LinkedList<>();
 
-    public void calculateShelfValue(Order order, SHELF shelf) {
+    public double updateShelfValue(Order order, SHELF shelf) {
         double orderAge = order.getOrderAge()/1000;
-        System.out.println(orderAge);
-        order.setLifeValue((order.getShelfLife() - orderAge - order.getDecayRate() * orderAge * shelf.getShelfDecayModifier())/order.getShelfLife());
-        System.out.println(order.getLifeValue());
+        double shelfOrderValue = (order.getShelfLife() - orderAge - order.getDecayRate() * orderAge * shelf.getShelfDecayModifier())/order.getShelfLife();
+        order.setLifeValue(shelfOrderValue);
+        System.out.println("shelfOrderValue " + shelfOrderValue);
+        return shelfOrderValue;
     }
 
     @Override
@@ -53,20 +53,20 @@ public class ShelfStorage implements IStorage {
                 addOrderToShelf(order, shelf);
             }
             else {
-                removeFromOverFlowShelfAndInsertIntoRegularShelf(shelf);
+                removeOrdersFromOverFlowShelfAndInsertIntoRegularShelf(shelf);
             }
         }
     }
 
-    private void removeFromOverFlowShelfAndInsertIntoRegularShelf(SHELF shelf) {
+    private void removeOrdersFromOverFlowShelfAndInsertIntoRegularShelf(SHELF shelf) {
         Iterator iterator = shelfMap.get(shelf).iterator();
         while (iterator.hasNext()) {
             Order orderToBeRemoved = (Order) iterator.next();
             if(shelfMap.get(shelf).size() < shelf.getShelfCapacity()) {
-                calculateShelfValue(orderToBeRemoved, shelf);
+                System.out.println("Order removed " + orderToBeRemoved.getId());
+                updateShelfValue(orderToBeRemoved, shelf);
                 shelfMap.get(shelf).add(orderToBeRemoved);
                 iterator.remove();
-                break;
             }
         }
     }
@@ -80,13 +80,25 @@ public class ShelfStorage implements IStorage {
             shelfMap.put(shelf, new PriorityQueue<>(shelf.getShelfCapacity(), new OrderComparator()));
         }
         if(shelfMap.get(shelf).size() < shelf.getShelfCapacity()) {
-            calculateShelfValue(order, shelf);
+            updateShelfValue(order, shelf);
             shelfMap.get(shelf).add(order);
         }
     }
 
     @Override
-    public Order getOrderFromStorage(Order order) {
-        return shelfMap.get(order.getTemp()).peek();
+    public void updateStorage() {
+        for(Map.Entry entry : shelfMap.entrySet()) {
+            Iterator iterator = ((PriorityQueue<?>) entry.getValue()).iterator();
+            while (iterator.hasNext()) {
+                Order orderToBeRemoved = (Order) iterator.next();
+                double orderShelfValue = updateShelfValue(orderToBeRemoved, (SHELF) entry.getKey());
+                if(orderShelfValue <= 0.0) {
+                    //Adding expired orders to stale order queue
+                    System.out.println("Order removed " + orderToBeRemoved.getId());
+                    staleOrders.add(orderToBeRemoved);
+                    iterator.remove();
+                }
+            }
+        }
     }
 }
