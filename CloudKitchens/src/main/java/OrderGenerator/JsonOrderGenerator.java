@@ -9,8 +9,10 @@ import java.io.Reader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.logging.Logger;
 
 public class JsonOrderGenerator implements IOrderGenerator {
+    public final static Logger LOGGER = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME);
 
     private static final String FILE_NAME = "orders.json";
     private Gson gson = new Gson();

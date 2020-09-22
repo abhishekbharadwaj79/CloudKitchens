@@ -1,29 +1,43 @@
 package Manager;
 
+import Courier.DispatchCouriers;
 import OrderGenerator.IOrderGenerator;
 import OrderType.Order;
 import Storage.IStorage;
-import Storage.ShelfStorage;
+import Utils.TimeFormat;
 
-public class ProcessOrders implements Runnable {
+import java.time.Duration;
+import java.time.Instant;
+import java.util.logging.Logger;
+
+class ProcessOrders implements Runnable {
+    public final static Logger LOGGER = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME);
     IStorage storage;
     IOrderGenerator orderGenerator;
-    int ordersPerSecond;
+    int ordersToBeProcessed;
+    DispatchCouriers dispatchCouriers;
 
-    public ProcessOrders(IStorage storage, IOrderGenerator orderGenerator, int ordersPerSecond) {
-        this.storage = new ShelfStorage();
+
+    public ProcessOrders(IStorage storage, IOrderGenerator orderGenerator, int ordersToBeProcessed, DispatchCouriers dispatchCouriers) {
+        this.storage = storage;
         this.orderGenerator = orderGenerator;
-        this.ordersPerSecond = ordersPerSecond;
+        this.ordersToBeProcessed = ordersToBeProcessed;
+        this.dispatchCouriers = dispatchCouriers;
     }
 
     @Override
     public void run() {
+        LOGGER.info("Started a thread to process orders " + Thread.currentThread().getName() +
+                " at " + TimeFormat.systemToSimpleDateFormat(System.currentTimeMillis()));
         int num = 0;
-        while(orderGenerator.hasNextOrder() && num != ordersPerSecond) {
+        Instant start = Instant.now();
+        while(orderGenerator.hasNextOrder() && num != ordersToBeProcessed) {
             Order order = orderGenerator.getNextOrder();
-            order.setCreateTime(System.currentTimeMillis());
             storage.addOrderToStorage(order);
             num++;
+            dispatchCouriers.dispatchCouriers(order);
         }
+        Instant end = Instant.now();
+        LOGGER.info("Time to process " + ordersToBeProcessed + " orders in nanoseconds" + Duration.between(start, end).getNano());
     }
 }

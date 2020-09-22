@@ -3,14 +3,15 @@ package OrderType;
 import java.sql.Timestamp;
 
 public class Order {
-    String id;
-    String name;
-    String temp;
-    int shelfLife;
-    double decayRate;
-    // How to track it across threads.
-    long createTime;
-    double lifeValue;
+    private String id;
+    private String name;
+    private String temp;
+    private int shelfLife;
+    private double decayRate;
+    private long createTime;
+    private double expiry;
+    private double value;
+
 
     public Order(String id, String name, String temp, int shelfLife, double decayRate) {
         this.id = id;
@@ -20,12 +21,24 @@ public class Order {
         this.decayRate = decayRate;
     }
 
-    public double getLifeValue() { return lifeValue; }
-
-    public void setLifeValue(double lifeValue) { this.lifeValue = lifeValue; }
-
     public double getOrderAge() {
-        return System.currentTimeMillis() - getCreateTime();
+        return getCreateTime() - System.currentTimeMillis();
+    }
+
+    public double getValue() {
+        return value;
+    }
+
+    public void setValue(double value) {
+        this.value = value;
+    }
+
+    public void setExpiry(double expiry) {
+        this.expiry = expiry;
+    }
+
+    public double getExpiry() {
+        return expiry;
     }
 
     public String getId() {
