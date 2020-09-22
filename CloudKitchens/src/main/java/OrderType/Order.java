@@ -13,16 +13,20 @@ public class Order {
     private double value;
 
 
+    public Order() {
+
+    }
+
     public Order(String id, String name, String temp, int shelfLife, double decayRate) {
         this.id = id;
         this.name = name;
-        this.temp = temp;
+        this.temp = temp.toUpperCase();
         this.shelfLife = shelfLife;
         this.decayRate = decayRate;
     }
 
-    public double getOrderAge() {
-        return getCreateTime() - System.currentTimeMillis();
+    public long getOrderAge() {
+        return (System.currentTimeMillis() - getCreateTime())/1000;
     }
 
     public double getValue() {
@@ -52,7 +56,7 @@ public class Order {
     }
 
     public String getTemp() {
-        return temp;
+        return temp.toUpperCase();
     }
 
     public int getShelfLife() { return shelfLife; }

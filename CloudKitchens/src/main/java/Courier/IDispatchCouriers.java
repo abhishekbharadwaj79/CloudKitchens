@@ -1,7 +1,7 @@
-package Courier;
+package courier;
 
 import OrderType.Order;
 
-public interface DispatchCouriers{
+public interface IDispatchCouriers {
     void dispatchCouriers(Order order);
 }

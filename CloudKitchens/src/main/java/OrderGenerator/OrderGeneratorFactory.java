@@ -6,6 +6,7 @@ import java.util.logging.Logger;
 
 public class OrderGeneratorFactory {
     public final static Logger LOGGER = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME);
+
     public static IOrderGenerator createOrderInstance(String orderType) {
         switch (orderType) {
             case "Json":
